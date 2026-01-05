@@ -7,7 +7,12 @@ authors = [
     { name = "Calixte Henry", email = "131826512+CalHenry@users.noreply.github.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "ipykernel>=7.1.0",
+    "polars>=1.36.1",
+    "textual>=7.0.0",
+    "textual-dev>=1.8.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.9.21,<0.10.0"]
