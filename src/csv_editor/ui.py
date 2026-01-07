@@ -47,6 +47,7 @@ class CSVEditorApp(App):
         """Load CSV data into the DataTable"""
         table = self.query_one(DataTable)
         table.clear(columns=True)
+
         df = self.data_model.df
 
         # set header to receive loaded data info (file name, col and row count)
@@ -57,19 +58,11 @@ class CSVEditorApp(App):
             self.sub_title = str("No data loaded")
             return
 
-        # Add index column first (empty header for row numbers)
-        table.add_column("", key="__index__", width=None)
-
-        # Add columns with original names as keys and letter headers for display
-        for i, col_name in enumerate(df.columns):
-            col_letter = column_letter(i)
-            table.add_column(f"{col_letter}\n{col_name}", key=col_name, width=30)
-
-        # Add rows with index numbers as first column
-        for row_idx, row in enumerate(df.iter_rows(), start=1):
-            label = Text(str(row_idx), style="bold")
-            # table.add_row(str(label), *row, key=f"row_{row_idx}")
-            table.add_row(label, *row, key=f"row_{row_idx}")
+        # Add columns and rows
+        for col_name in df.columns:
+            table.add_column(col_name, key=col_name)
+        for row in df.iter_rows():
+            table.add_row(*row)
 
         # Update header with file info
         self.sub_title = f"{self.csv_path} | {len(df)} rows × {len(df.columns)} cols"

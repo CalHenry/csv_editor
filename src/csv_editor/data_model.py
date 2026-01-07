@@ -3,9 +3,6 @@ from typing import Any, Optional
 
 import polars as pl
 
-# read csv data with polars
-test_csv = pl.scan_csv("test_csv.csv")
-
 
 class CSVDataModel:
     """
