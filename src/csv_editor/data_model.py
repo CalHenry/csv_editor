@@ -20,6 +20,7 @@ class CSVDataModel:
 
         self.load()
 
+    # ---basic operations--- #
     def load(self) -> None:
         """
         Load csv with polars
@@ -55,6 +56,7 @@ class CSVDataModel:
         self.df.write_csv(self.file_path)
         self.modified = False
 
+    # ---edit cells--- #
     def set_cell(self, row_idx: int, col_idx: int, value: Any) -> None:
         """
         Set the value at a specific cell.
@@ -87,4 +89,48 @@ class CSVDataModel:
             .alias(col_name)
         )
 
+        self.modified = True
+
+    # ---add new row or column--- #
+    def row_count(self) -> int:
+        return 0 if self.df is None else len(self.df)
+
+    def column_count(self) -> int:
+        return 0 if self.df is None else len(self.df.columns)
+
+    def insert_row(self, row_idx: int, values: Optional[list[Any]] = None) -> None:
+        """
+        Insert a row at the given index (aka. below the cursor).
+
+        Args:
+            row_idx: Index where the row will be inserted
+            values: Optional list of values (must match number of columns)
+
+        Raises:
+            RuntimeError: If no data is loaded
+            IndexError: If index is out of bounds
+            ValueError: If values length is incorrect
+        """
+        if self.df is None:
+            raise RuntimeError("No data loaded")
+
+        if row_idx < 0 or row_idx > len(self.df):
+            raise IndexError(f"Row index {row_idx} out of bounds")
+
+        num_cols = len(self.df.columns)
+
+        if values is None:
+            values = [None] * num_cols
+        elif len(values) != num_cols:
+            raise ValueError(f"Expected {num_cols} values, got {len(values)}")
+
+        new_row = pl.DataFrame(
+            [values],
+            schema=self.df.schema,
+        )
+
+        top = self.df.slice(0, row_idx)
+        bottom = self.df.slice(row_idx)
+
+        self.df = pl.concat([top, new_row, bottom])
         self.modified = True

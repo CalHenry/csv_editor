@@ -9,7 +9,9 @@ from textual.containers import Vertical
 from textual.widgets import DataTable, Footer, Header, Input
 
 from .data_model import CSVDataModel
-from .helpers import col_label_spreasheet_format
+from .helpers import (
+    col_label_spreasheet_format,
+)
 
 
 ##-----Textual app-----##
@@ -23,7 +25,7 @@ class CSVEditorApp(App):
         Binding("r", "reload", "Reload"),
         Binding("e", "edit_cell", "Edit Cell", show=True),
         Binding("escape", "cancel_edit", "Cancel", show=True),
-        Binding("n", "add_new_row", "new_row", show=True),
+        Binding("n", "insert_new_row_below_cursor", "new_row", show=True),
     ]
 
     def __init__(self, csv_path: str):
@@ -47,8 +49,11 @@ class CSVEditorApp(App):
 
         with Vertical(id="main-container"):
             yield DataTable(cursor_type="cell", header_height=2, zebra_stripes=True)
-            yield Input(placeholder="Edit cell value...", id="formula_bar")
-
+            yield Input(
+                placeholder="Edit cell value...",
+                id="formula_bar",
+                classes="formula_bar",
+            )
         yield Footer()
 
     def on_mount(self) -> None:
@@ -85,13 +90,6 @@ class CSVEditorApp(App):
         # Set up table cursor
         table.cursor_type = "cell"
 
-    def action_add_new_row(self) -> None:
-        table = self.query_one(DataTable)
-
-        table.add_row()  # add at the bottom and can't change that
-        # get_row_key() or row_index() can help me sort the row
-        # pop the new row and give him the
-
     def _update_row_indices(self) -> None:
         """Update the index column for all rows"""
         table = self.query_one(DataTable)
@@ -127,11 +125,12 @@ class CSVEditorApp(App):
         try:
             current_value = table.get_cell_at(event.coordinate)
             formula_bar.value = str(current_value)
+            print(table.get_row_index(row_key="10"))
         except Exception:
             # Handle case where cell might not exist
             formula_bar.value = ""
 
-    # --- edit data actions--- #
+    # ---edit data actions--- #
     def action_edit_cell(self) -> None:
         """Start editing selected cell in formula bar"""
         table = self.query_one(DataTable)
@@ -191,6 +190,34 @@ class CSVEditorApp(App):
         if action == "cancel_edit":
             return hasattr(self, "editing_cell")
         return True
+
+    # ---add data actions---#
+    def action_insert_new_row_below_cursor(self) -> None:
+        """
+        Insert a new empty row below the current cursor position.
+        Uses CSVDataModel (that uses polars) to create the new row (textual only reads - the file is the source of thruth)
+        - insert the new row in the data model (polars)
+        - reload the table (textual)
+        - move the cursor back to the original position so it appears like it didn't move
+        """
+        table = self.query_one(DataTable)
+
+        if table.cursor_coordinate is None:
+            return
+
+        row, col = table.cursor_coordinate
+
+        try:
+            self.data_model.insert_row(row + 1)
+        except Exception as e:
+            self.notify(f"Failed to insert row: {e}", severity="error")
+            return
+
+        self.load_data()  # reset cursor position to the first row (by default)
+
+        # Restore cursor to its position
+        new_row = min(row + 1, self.data_model.row_count() - 1)
+        table.move_cursor(row=new_row, column=col, animate=True)
 
 
 def main():
