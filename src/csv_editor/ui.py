@@ -26,6 +26,7 @@ class CSVEditorApp(App):
         Binding("e", "edit_cell", "Edit Cell", show=True),
         Binding("escape", "cancel_edit", "Cancel", show=True),
         Binding("n", "insert_new_row_below_cursor", "new_row", show=True),
+        Binding("c", "insert_new_col_right_cursor", "new_col", show=True),
     ]
 
     def __init__(self, csv_path: str):
@@ -33,22 +34,11 @@ class CSVEditorApp(App):
         self.csv_path = csv_path
         self.data_model = CSVDataModel(csv_path)
 
-    '''
-    def compose(self) -> ComposeResult:
-        """Create child widgets"""
-        yield Header()
-        with Vertical(id="main-container"):
-            yield IndexColumn(id="index_col", content=("tests"))
-            yield DataTable(cursor_type="cell", header_height=2, zebra_stripes=True)
-            yield Input(placeholder="Edit cell value...", id="formula_bar")
-        yield Footer()
-    '''
-
     def compose(self) -> ComposeResult:
         yield Header()
 
         with Vertical(id="main-container"):
-            yield DataTable(cursor_type="cell", header_height=2, zebra_stripes=True)
+            yield DataTable(cursor_type="row", header_height=2, zebra_stripes=True)
             yield Input(
                 placeholder="Edit cell value...",
                 id="formula_bar",
@@ -125,7 +115,6 @@ class CSVEditorApp(App):
         try:
             current_value = table.get_cell_at(event.coordinate)
             formula_bar.value = str(current_value)
-            print(table.get_row_index(row_key="10"))
         except Exception:
             # Handle case where cell might not exist
             formula_bar.value = ""
@@ -217,7 +206,34 @@ class CSVEditorApp(App):
 
         # Restore cursor to its position
         new_row = min(row + 1, self.data_model.row_count() - 1)
-        table.move_cursor(row=new_row, column=col, animate=True)
+        table.move_cursor(row=new_row, column=col)
+
+    def action_insert_new_col_right_cursor(self) -> None:
+        """
+        Insert a new empty column to the right of the current cursor position.
+        Uses CSVDataModel (that uses polars) to create the new column
+        - insert the new column in the data model (polars)
+        - reload the table (textual)
+        - move the cursor back to the original position so it appears like it didn't move
+        """
+        table = self.query_one(DataTable)
+
+        if table.cursor_coordinate is None:
+            return
+
+        row, col = table.cursor_coordinate
+
+        try:
+            self.data_model.insert_column(col + 1)
+        except Exception as e:
+            self.notify(f"Failed to insert column: {e}", severity="error")
+            return
+
+        self.load_data()  # reset cursor position to the first cell (by default)
+
+        # Restore cursor to its position
+        new_col = min(col + 1, self.data_model.column_count() - 1)
+        table.move_cursor(row=row, column=new_col)
 
 
 def main():

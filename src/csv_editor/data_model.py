@@ -104,12 +104,10 @@ class CSVDataModel:
 
         Args:
             row_idx: Index where the row will be inserted
-            values: Optional list of values (must match number of columns)
 
         Raises:
             RuntimeError: If no data is loaded
             IndexError: If index is out of bounds
-            ValueError: If values length is incorrect
         """
         if self.df is None:
             raise RuntimeError("No data loaded")
@@ -119,10 +117,7 @@ class CSVDataModel:
 
         num_cols = len(self.df.columns)
 
-        if values is None:
-            values = [None] * num_cols
-        elif len(values) != num_cols:
-            raise ValueError(f"Expected {num_cols} values, got {len(values)}")
+        values = [None] * num_cols  # empty rows
 
         new_row = pl.DataFrame(
             [values],
@@ -133,4 +128,62 @@ class CSVDataModel:
         bottom = self.df.slice(row_idx)
 
         self.df = pl.concat([top, new_row, bottom])
+        self.modified = True
+
+    def insert_column(
+        self,
+        col_idx: int,
+        col_name: Optional[str] = None,
+        # values: Optional[list[Any]] = None,
+    ) -> None:
+        """
+        Insert a column at the given index (to the right of the cursor).
+
+        Args:
+            col_idx: Index where the column will be inserted
+            col_name: Optional name for the new column
+
+        Raises:
+            RuntimeError: If no data is loaded
+            IndexError: If index is out of bounds
+        """
+        if self.df is None:
+            raise RuntimeError("No data loaded")
+
+        if col_idx < 0 or col_idx > len(self.df.columns):
+            raise IndexError(f"Column index {col_idx} out of bounds")
+
+        num_rows = len(self.df)
+
+        # Generate a unique column name if not provided
+        if col_name is None:
+            existing_cols = set(self.df.columns)
+            counter = 1
+            col_name = f"Column_{counter}"
+            while col_name in existing_cols:
+                counter += 1
+                col_name = f"Column_{counter}"
+
+        values = [None] * num_rows  # empty cols
+
+        # Create new column dataframe
+        new_col_df = pl.DataFrame({col_name: values})
+
+        # Split the dataframe and insert the new column
+        if col_idx == 0:
+            # Insert at the beginning
+            self.df = pl.concat([new_col_df, self.df], how="horizontal")
+        elif col_idx >= len(self.df.columns):
+            # Insert at the end
+            self.df = pl.concat([self.df, new_col_df], how="horizontal")
+        else:
+            # Insert in the middle
+            left_cols = self.df.columns[:col_idx]
+            right_cols = self.df.columns[col_idx:]
+
+            left_df = self.df.select(left_cols)
+            right_df = self.df.select(right_cols)
+
+            self.df = pl.concat([left_df, new_col_df, right_df], how="horizontal")
+
         self.modified = True
