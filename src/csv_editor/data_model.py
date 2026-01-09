@@ -187,3 +187,57 @@ class CSVDataModel:
             self.df = pl.concat([left_df, new_col_df, right_df], how="horizontal")
 
         self.modified = True
+
+    # ---remove row or col--- #
+    def delete_row(self, row_idx: int) -> None:
+        """
+        Delete a row at the given index.
+
+        Args:
+            row_idx: Index of the row to delete
+
+        Raises:
+            RuntimeError: If no data is loaded
+            IndexError: If index is out of bounds
+            ValueError: If trying to delete the last remaining row
+        """
+        if self.df is None:
+            raise RuntimeError("No data loaded")
+
+        if row_idx < 0 or row_idx >= len(self.df):
+            raise IndexError(f"Row index {row_idx} out of bounds")
+
+        if len(self.df) == 1:
+            raise ValueError("Cannot delete the last remaining row")
+
+        # Create a boolean mask for all rows except the one to delete
+        mask = pl.int_range(pl.len()) != row_idx
+        self.df = self.df.filter(mask)
+
+        self.modified = True
+
+    def delete_column(self, col_idx: int) -> None:
+        """
+        Delete a column at the given index.
+
+        Args:
+            col_idx: Index of the column to delete
+
+        Raises:
+            RuntimeError: If no data is loaded
+            IndexError: If index is out of bounds
+            ValueError: If trying to delete the last remaining column
+        """
+        if self.df is None:
+            raise RuntimeError("No data loaded")
+
+        if col_idx < 0 or col_idx >= len(self.df.columns):
+            raise IndexError(f"Column index {col_idx} out of bounds")
+
+        if len(self.df.columns) == 1:
+            raise ValueError("Cannot delete the last remaining column")
+
+        col_name = self.df.columns[col_idx]
+        self.df = self.df.drop(col_name)
+
+        self.modified = True

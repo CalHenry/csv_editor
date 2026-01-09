@@ -15,10 +15,10 @@ Components:
 
 ### Features
 - [X] being able to add new rows (used the data model and not textual to acheive this)
-- [] being able to add new cols
+- [x] being able to add new cols
 - [] jump to a cell or row or col using coordinates (like A:25, or :25, or A: (synthax to define))
-- [] delete rows
-- [] delete cols 
+- [X] delete rows
+- [X] delete cols 
 #### Theme
 - [] highlight col clicking on col header
 - [] highlight row when clicking on row indice
