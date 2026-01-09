@@ -53,6 +53,37 @@ class CSVEditorApp(App):
         self.theme = "catppuccin-mocha"
         self.load_data()
 
+    def _set_cursor_type(
+        self, table: DataTable, cursor_type: str, row: int = 0, column: int = 0
+    ) -> None:
+        """Helper to set cursor type and position"""
+        table.cursor_type = cursor_type
+        if cursor_type == "column":
+            table.move_cursor(column=column)
+        elif cursor_type == "row":
+            table.move_cursor(row=row)
+        elif cursor_type == "cell":
+            table.move_cursor(row=row, column=column)
+
+    def on_data_table_header_selected(self, event: DataTable.HeaderSelected) -> None:
+        """Column header clicked - switch to column cursor"""
+        self._set_cursor_type(event.data_table, "column", column=event.column_index)
+
+    def on_data_table_row_label_selected(
+        self, event: DataTable.RowLabelSelected
+    ) -> None:
+        """Row label clicked - switch to row cursor"""
+        self._set_cursor_type(event.data_table, "row", row=event.row_index)
+
+    def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
+        """Cell clicked - switch to cell cursor"""
+        self._set_cursor_type(
+            event.data_table,
+            "cell",
+            row=event.coordinate.row,
+            column=event.coordinate.column,
+        )
+
     # ---file/ table actions--- #
     def load_data(self) -> None:
         """Load CSV data into the DataTable"""
