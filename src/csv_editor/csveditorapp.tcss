@@ -13,9 +13,15 @@ Screen {
     }
 
     #formula_bar {
-        outline: round $primary
-
+        outline: hkey $primary;
+        opacity: 50%;
     }
+
+    #formula_bar:focus {
+        outline: round $primary;
+        opacity: 100%;
+    }
+
 
     #status-bar {
         dock: bottom;
