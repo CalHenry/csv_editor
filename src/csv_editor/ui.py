@@ -9,10 +9,10 @@ from textual.containers import Vertical
 from textual.widgets import DataTable, Footer, Header, Input
 
 from .data_model import CSVDataModel
-from .static_index import IndexColumn
+from .helpers import col_label_spreasheet_format
 
 
-# -----Textual app-----#
+##-----Textual app-----##
 class CSVEditorApp(App):
     """A Textual app for editing CSV files"""
 
@@ -46,11 +46,7 @@ class CSVEditorApp(App):
         yield Header()
 
         with Vertical(id="main-container"):
-            self.index_col = IndexColumn(id="index_col")
-            yield self.index_col
-
             yield DataTable(cursor_type="cell", header_height=2, zebra_stripes=True)
-
             yield Input(placeholder="Edit cell value...", id="formula_bar")
 
         yield Footer()
@@ -60,11 +56,10 @@ class CSVEditorApp(App):
         self.theme = "catppuccin-mocha"
         self.load_data()
 
-    # ---file actions---#
+    # ---file/ table actions--- #
     def load_data(self) -> None:
         """Load CSV data into the DataTable"""
         table = self.query_one(DataTable)
-        index_col = self.query_one(IndexColumn)
         table.clear(columns=True)
 
         df = self.data_model.df
@@ -78,10 +73,11 @@ class CSVEditorApp(App):
             return
 
         # Add columns and rows
-        for col_name in df.columns:
-            table.add_column(col_name, key=col_name)
-        for row in df.iter_rows():
-            table.add_row(*row)
+        for i, col_name in enumerate(df.columns):
+            labeled_col_name = f"{col_label_spreasheet_format(i)}\n{col_name}"
+            table.add_column(labeled_col_name, key=col_name, width=30)
+        for i, row in enumerate(df.iter_rows()):
+            table.add_row(*row, label=f"{i + 1}")
 
         # Update header with file info
         self.sub_title = f"{self.csv_path} | {len(df)} rows × {len(df.columns)} cols"
@@ -90,7 +86,11 @@ class CSVEditorApp(App):
         table.cursor_type = "cell"
 
     def action_add_new_row(self) -> None:
-        print("hey")
+        table = self.query_one(DataTable)
+
+        table.add_row()  # add at the bottom and can't change that
+        # get_row_key() or row_index() can help me sort the row
+        # pop the new row and give him the
 
     def _update_row_indices(self) -> None:
         """Update the index column for all rows"""
@@ -118,7 +118,20 @@ class CSVEditorApp(App):
         except Exception as e:
             self.notify(f"Reload failed: {e}", severity="error")
 
-    # --- edit data actions---#
+    def on_data_table_cell_highlighted(self, event: DataTable.CellHighlighted) -> None:
+        """Update formula bar when cursor moves to a new cell"""
+        table = self.query_one(DataTable)
+        formula_bar = self.query_one("#formula_bar", Input)
+
+        # Get the value of the highlighted cell
+        try:
+            current_value = table.get_cell_at(event.coordinate)
+            formula_bar.value = str(current_value)
+        except Exception:
+            # Handle case where cell might not exist
+            formula_bar.value = ""
+
+    # --- edit data actions--- #
     def action_edit_cell(self) -> None:
         """Start editing selected cell in formula bar"""
         table = self.query_one(DataTable)
