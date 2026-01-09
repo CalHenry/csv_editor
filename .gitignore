@@ -10,3 +10,4 @@ wheels/
 .venv
 
 /old_code.py
+/test_csv.csv
