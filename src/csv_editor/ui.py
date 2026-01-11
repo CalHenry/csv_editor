@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from typing import Literal
 
 from rich.text import Text
 from textual import events
@@ -12,6 +13,7 @@ from .data_model import CSVDataModel
 from .helpers import (
     col_label_spreasheet_format,
 )
+from .screens.screen import CoordInputScreen
 
 
 ##-----Textual app-----##
@@ -29,6 +31,7 @@ class CSVEditorApp(App):
         Binding("b", "insert_new_col_right_cursor", "new_col", show=True),
         Binding("ctrl+n", "delete_row", "del_row", show=False),
         Binding("ctrl+b", "delete_column", "del_col", show=False),
+        Binding("ctrl+g", "goto_cell", "goto_cell", show=True),
     ]
 
     def __init__(self, csv_path: str):
@@ -52,6 +55,31 @@ class CSVEditorApp(App):
         """Load data when app starts"""
         self.theme = "catppuccin-mocha"
         self.load_data()
+
+    # ----cursor---- #
+    def _set_cursor_type(
+        self,
+        table: DataTable,
+        cursor_type: Literal["cell", "row", "column", "none"],
+        row: int = 0,
+        column: int = 0,
+    ) -> None:
+        """Helper to set cursor type and position"""
+        table.cursor_type = cursor_type
+        if cursor_type == "column":
+            table.move_cursor(column=column)
+        elif cursor_type == "row":
+            table.move_cursor(row=row)
+
+    def on_data_table_header_selected(self, event: DataTable.HeaderSelected) -> None:
+        """Column header clicked - switch to column cursor"""
+        self._set_cursor_type(event.data_table, "column", column=event.column_index)
+
+    def on_data_table_row_label_selected(
+        self, event: DataTable.RowLabelSelected
+    ) -> None:
+        """Row label clicked - switch to row cursor"""
+        self._set_cursor_type(event.data_table, "row", row=event.row_index)
 
     # ---file/ table actions--- #
     def load_data(self) -> None:
@@ -150,20 +178,26 @@ class CSVEditorApp(App):
             self._clear_edit_state(table)
 
     def on_key(self, event: events.Key) -> None:
-        """Cancel the edit with espace key"""
+        """
+        ESCAPE key behavior:
+        - Cancel the edit if formula bar is the focus
+        - back to cell cursor otherwise (if already cell cursor do nothink)
+        """
         formula_bar = self.query_one("#formula_bar", Input)
+        table = self.query_one(DataTable)
         if (
             event.key == "escape"
             and formula_bar.has_focus
             and hasattr(self, "editing_cell")
         ):
-            table = self.query_one(DataTable)
             row_key, col_key, original_value = self.editing_cell
             # Restore original value if it was modified
             formula_bar.value = ""
             self._clear_edit_state(table)
             event.prevent_default()
             event.stop()
+        else:
+            table.cursor_type = "cell"  # relevant for the cursor part of the code. Unrelated to cell modif
 
     def _clear_edit_state(self, table: DataTable) -> None:
         """Helper to clean up after edit completion or cancelation"""
@@ -179,7 +213,7 @@ class CSVEditorApp(App):
             return hasattr(self, "editing_cell")
         return True
 
-    # ---add data actions---#
+    # ---add row and cols actions---#
     def action_insert_new_row_below_cursor(self) -> None:
         """
         Insert a new empty row below the current cursor position.
@@ -286,6 +320,30 @@ class CSVEditorApp(App):
         # Move cursor to the same column (or the last column if we deleted the last one)
         new_col = min(col, self.data_model.column_count() - 1)
         table.move_cursor(row=row, column=new_col)
+
+    # ---remove row or col--- #
+    def action_goto_cell(self) -> None:
+        """Open the navigation popup."""
+        table = self.query_one(DataTable)
+        max_row = table.row_count
+        max_col = len(table.columns)
+
+        def handle_navigation(result: tuple[int, int] | None) -> None:
+            if result is not None:
+                row, col = result
+
+                # Get current position if value is None
+                current_row = table.cursor_row
+                current_col = table.cursor_column
+
+                target_row = row if row is not None else current_row
+                target_col = col if col is not None else current_col
+
+                # Move cursor to the specified cell
+                table.move_cursor(row=target_row, column=target_col)
+                table.focus()
+
+        self.push_screen(CoordInputScreen(max_row, max_col), handle_navigation)
 
 
 def main():

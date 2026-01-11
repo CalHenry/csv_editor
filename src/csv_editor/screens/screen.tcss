@@ -1,0 +1,15 @@
+NavigateScreen {
+        align: center middle;
+    }
+
+    #coord_input {
+        width: auto;
+        min-width: 13%;
+        border: round  $primary;
+        border-subtitle-align: center;
+    }
+
+    #error_message {
+        width: auto;
+        color: $error;
+    }
