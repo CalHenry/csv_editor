@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 from typing import Literal
 
-from rich.text import Text
 from textual import events
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -31,7 +30,7 @@ class CSVEditorApp(App):
         Binding("b", "insert_new_col_right_cursor", "new_col", show=True),
         Binding("ctrl+n", "delete_row", "del_row", show=False),
         Binding("ctrl+b", "delete_column", "del_col", show=False),
-        Binding("ctrl+g", "goto_cell", "goto_cell", show=True),
+        Binding("ctrl+g", "goto_cell", "jump cell", show=True),
     ]
 
     def __init__(self, csv_path: str):
@@ -40,7 +39,7 @@ class CSVEditorApp(App):
         self.data_model = CSVDataModel(csv_path)
 
     def compose(self) -> ComposeResult:
-        yield Header()
+        yield Header(icon="􀝥")
 
         with Vertical(id="main-container"):
             yield DataTable(cursor_type="cell", header_height=2, zebra_stripes=True)
@@ -107,15 +106,6 @@ class CSVEditorApp(App):
         # Update header with file info
         self.sub_title = f"{self.csv_path} | {len(df)} rows × {len(df.columns)} cols"
 
-    def _update_row_indices(self) -> None:
-        """Update the index column for all rows"""
-        table = self.query_one(DataTable)
-
-        for idx, row_key in enumerate(table.rows.keys(), start=1):
-            label = Text(str(idx), style="bold")
-            # Update just the index column
-            table.update_cell(row_key, "__index__", label)
-
     def action_save(self) -> None:
         """Save the CSV file"""
         try:
@@ -163,7 +153,6 @@ class CSVEditorApp(App):
         formula_bar.value = str(current_value)
         formula_bar.focus()
 
-    # Handle the input submission:
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id == "formula_bar" and hasattr(self, "editing_cell"):
             row_key, col_key, _ = self.editing_cell
@@ -181,7 +170,7 @@ class CSVEditorApp(App):
         """
         ESCAPE key behavior:
         - Cancel the edit if formula bar is the focus
-        - back to cell cursor otherwise (if already cell cursor do nothink)
+        - set cell cursor to 'cell' if formula bar is not the focus (if already cell cursor do nothing)
         """
         formula_bar = self.query_one("#formula_bar", Input)
         table = self.query_one(DataTable)
@@ -208,9 +197,17 @@ class CSVEditorApp(App):
             delattr(self, "editing_cell")
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        """Show/ hide the 'escape' keybinding in the footer. Show only in edit mode"""
+        """
+        Show/ hide keybindings in the footer.
+        - show only escape keybinding in edit mode
+        - hide goto_cell keybinding in edit mode
+        """
+        formula_bar = self.query_one("#formula_bar", Input)
+
         if action == "cancel_edit":
             return hasattr(self, "editing_cell")
+        if action == "goto_cell":
+            return not formula_bar.has_focus
         return True
 
     # ---add row and cols actions---#
@@ -321,7 +318,7 @@ class CSVEditorApp(App):
         new_col = min(col, self.data_model.column_count() - 1)
         table.move_cursor(row=row, column=new_col)
 
-    # ---remove row or col--- #
+    # ---jump to specific cell--- #
     def action_goto_cell(self) -> None:
         """Open the navigation popup."""
         table = self.query_one(DataTable)
