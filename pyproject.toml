@@ -1,7 +1,7 @@
 [project]
-name = "csv-editor"
+name = "csv-ve"
 version = "0.1.0"
-description = "Add your description here"
+description = "Tui csv viewer and editor - Basic features but enougth to quickly open and edit a few cells"
 readme = "README.md"
 authors = [
     { name = "Calixte Henry", email = "131826512+CalHenry@users.noreply.github.com" }
