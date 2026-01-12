@@ -22,8 +22,8 @@ class CSVEditorApp(App):
     CSS_PATH = "csv_ve.tcss"
     BINDINGS = [
         Binding("q", "quit", "Quit"),
-        Binding("s", "save", "Save"),
-        Binding("r", "reload", "Reload"),
+        Binding("ctrl+s", "save", "Save"),
+        Binding("ctrl+r", "reload", "Reload"),
         Binding("e", "edit_cell", "Edit Cell", show=True),
         Binding("escape", "cancel_edit", "Cancel", show=True),
         Binding("n", "insert_new_row_below_cursor", "new_row", show=True),
