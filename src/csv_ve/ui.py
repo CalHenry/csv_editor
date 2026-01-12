@@ -32,6 +32,10 @@ class CSVEditorApp(App):
         Binding("ctrl+b", "delete_column", "del_col", show=False),
         Binding("ctrl+g", "goto_cell", "jump cell", show=True),
         Binding("ctrl+c", "copy_cell", "copy", show=False),
+        Binding("h", "table_left", "Left"),
+        Binding("j", "table_down", "Down"),
+        Binding("k", "table_up", "Up"),
+        Binding("l", "table_right", "Right"),
     ]
 
     def __init__(self, csv_path: str):
@@ -58,6 +62,7 @@ class CSVEditorApp(App):
         self.load_data()
 
     # ----cursor---- #
+
     def _set_cursor_type(
         self,
         table: DataTable,
@@ -81,6 +86,23 @@ class CSVEditorApp(App):
     ) -> None:
         """Row label clicked - switch to row cursor"""
         self._set_cursor_type(event.data_table, "row", row=event.row_index)
+
+    # VIM keybindings
+    def action_table_left(self):
+        if isinstance(self.focused, DataTable):
+            self.focused.action_cursor_left()
+
+    def action_table_down(self):
+        if isinstance(self.focused, DataTable):
+            self.focused.action_cursor_down()
+
+    def action_table_up(self):
+        if isinstance(self.focused, DataTable):
+            self.focused.action_cursor_up()
+
+    def action_table_right(self):
+        if isinstance(self.focused, DataTable):
+            self.focused.action_cursor_right()
 
     # ---file/ table actions--- #
     def load_data(self) -> None:

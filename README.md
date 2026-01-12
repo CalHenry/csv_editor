@@ -51,10 +51,10 @@ uv tool install https://github.com/CalHenry/csv-ve.git
 - [X] delete rows
 - [X] delete cols 
 - [X] enter edit mode by pressing 'enter' instead of 'e' keymap
-- [ ] copy cell content directly from the table (content of highlighted cell)
+- [X] copy cell content directly from the table (content of highlighted cell)
 - [ ] resize columns
 - [ ] cli
-- [ ] vim naviagtion keys (hjkl)
+- [X] vim navigation keys (hjkl)
 - [ ] filtering rows/ search values ? 
 
 #### Theme
