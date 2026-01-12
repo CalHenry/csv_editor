@@ -28,7 +28,7 @@ Components:
 Textual has many built-in themes that you can select using the command palette
 
 
-## Installation (With uv)  
+## Installation (with uv)  
 Install uv:
 Homebrew:
 ```sh

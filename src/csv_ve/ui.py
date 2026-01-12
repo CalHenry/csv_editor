@@ -31,6 +31,7 @@ class CSVEditorApp(App):
         Binding("ctrl+n", "delete_row", "del_row", show=False),
         Binding("ctrl+b", "delete_column", "del_col", show=False),
         Binding("ctrl+g", "goto_cell", "jump cell", show=True),
+        Binding("ctrl+c", "copy_cell", "copy", show=False),
     ]
 
     def __init__(self, csv_path: str):
@@ -137,6 +138,15 @@ class CSVEditorApp(App):
             # Handle case where cell might not exist
             formula_bar.value = ""
 
+    def action_copy_cell(self) -> None:
+        table = self.query_one(DataTable)
+        if table.cursor_coordinate is None:
+            return
+        row_key, column_key = table.coordinate_to_cell_key(table.cursor_coordinate)
+
+        cell_value = table.get_cell(row_key, column_key)
+        self.copy_to_clipboard(str(cell_value))
+
     # ---edit data actions--- #
     def action_edit_cell(self) -> None:
         """Start editing selected cell in formula bar"""
@@ -173,6 +183,7 @@ class CSVEditorApp(App):
         - Cancel the edit if formula bar is the focus
         - set cell cursor to 'cell' if formula bar is not the focus (if already cell cursor do nothing)
         """
+        # escape key
         formula_bar = self.query_one("#formula_bar", Input)
         table = self.query_one(DataTable)
         if (
@@ -187,7 +198,13 @@ class CSVEditorApp(App):
             event.prevent_default()
             event.stop()
         else:
-            table.cursor_type = "cell"  # relevant for the cursor part of the code. Unrelated to cell modif
+            table.cursor_type = "cell"  # relevant for the cursor part of the code. Unrelated to cell modif but related to escape key
+        # enter key
+        if (
+            event.key == "enter" and not formula_bar.has_focus
+            # and hasattr(self, "editing_cell")
+        ):
+            event.stop()
 
     def _clear_edit_state(self, table: DataTable) -> None:
         """Helper to clean up after edit completion or cancelation"""
@@ -201,13 +218,13 @@ class CSVEditorApp(App):
         """
         Show/ hide keybindings in the footer.
         - show only escape keybinding in edit mode
-        - hide goto_cell keybinding in edit mode
+        - hide goto_cell, enter, save, reload keybinding in edit mode
         """
         formula_bar = self.query_one("#formula_bar", Input)
 
         if action == "cancel_edit":
             return hasattr(self, "editing_cell")
-        if action == "goto_cell":
+        if action in {"goto_cell", "edit_cell", "save", "reload"}:
             return not formula_bar.has_focus
         return True
 
