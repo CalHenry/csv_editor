@@ -24,7 +24,7 @@ class CSVEditorApp(App):
         Binding("q", "quit", "Quit"),
         Binding("ctrl+s", "save", "Save"),
         Binding("ctrl+r", "reload", "Reload"),
-        Binding("e", "edit_cell", "Edit Cell", show=True),
+        Binding("enter", "edit_cell", "Edit Cell", show=True, priority=True),
         Binding("escape", "cancel_edit", "Cancel", show=True),
         Binding("n", "insert_new_row_below_cursor", "new_row", show=True),
         Binding("b", "insert_new_col_right_cursor", "new_col", show=True),

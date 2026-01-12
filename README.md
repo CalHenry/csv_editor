@@ -4,12 +4,18 @@
 You can quickly open and edit your CSV file. 
 Navigate using the arrow keys or the mouse. Edit, add or remove row and columns using simple key bindings.  
 
-Many similar tui tools exist for CSV and also written in Go or Rust so likely with better performances that Python. But I wanted to make my own and Textual is an awesome library to create simple and visually appealing apps with minimal overhead.
+> Many similar tui tools exist for CSV and also written in Go or Rust so likely with better performances that Python. But I wanted to make my own and Textual is an awesome library to create simple and visually appealing apps with minimal overhead.
 
 Screenshots:
 
 ![snapshot](screenshots/basic_snapshot.png)
-
+ 
+ ## Requirements
+ - Python >= 3.12
+ - Textual >=7.0.0
+ - Polars>=1.36.1
+ 
+ 
 Components:
 
 - **data_model.py**: Handles the data and the data manipulations with Polars in a custom Class
@@ -44,7 +50,7 @@ uv tool install https://github.com/CalHenry/csv-ve.git
 - [X] jump to a specific cell or row or col using coordinates (format: **row:col** e.g. 12:3 - only support numeric coordinates)
 - [X] delete rows
 - [X] delete cols 
-- [ ] enter edit mode by pressing 'enter' instead of 'e' keymap
+- [X] enter edit mode by pressing 'enter' instead of 'e' keymap
 - [ ] copy cell content directly from the table (content of highlighted cell)
 - [ ] resize columns
 - [ ] cli
