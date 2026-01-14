@@ -1,7 +1,7 @@
 [project]
 name = "csv-ve"
 version = "0.1.0"
-description = "Tui CSV viewer and editor - Basic features but enougth to quickly open and edit a few cells"
+description = "TUI CSV viewer and editor - Basic features but enougth to quickly open and edit a few cells"
 readme = "README.md"
 license = "MIT"
 authors = [

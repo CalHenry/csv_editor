@@ -14,6 +14,7 @@ Screenshots:
  - Python >= 3.12
  - Textual >=7.0.0
  - Polars>=1.36.1
+ - Typer>=0.21.1
  
  
 Components:
@@ -51,10 +52,10 @@ uv tool install https://github.com/CalHenry/csv-ve.git
 - [X] delete rows
 - [X] delete cols 
 - [X] enter edit mode by pressing 'enter' instead of 'e' keymap
-- [ ] copy cell content directly from the table (content of highlighted cell)
+- [X] copy cell content directly from the table (content of highlighted cell)
 - [ ] resize columns
-- [ ] cli
-- [ ] vim naviagtion keys (hjkl)
+- [X] cli
+- [X] vim naviagtion keys (hjkl)
 - [ ] filtering rows/ search values ? 
 
 #### Theme
