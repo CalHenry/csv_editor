@@ -12,6 +12,7 @@ dependencies = [
     "polars>=1.36.1",
     "textual>=7.0.0",
     "textual-dev>=1.8.0",
+    "typer>=0.21.1",
 ]
 
 [project.scripts]
