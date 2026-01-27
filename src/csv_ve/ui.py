@@ -30,10 +30,14 @@ class CSVEditorApp(App):
         Binding("ctrl+b", "delete_column", "del_col", show=False),
         Binding("ctrl+g", "goto_cell", "jump cell", show=True),
         Binding("ctrl+c", "copy_cell", "copy", show=False),
+        # VIM keybindings
         Binding("h", "table_left", "Left", show=False),
         Binding("j", "table_down", "Down", show=False),
         Binding("k", "table_up", "Up", show=False),
         Binding("l", "table_right", "Right", show=False),
+        Binding("l", "table_right", "Right", show=False),
+        Binding("G", "table_bottom", "Bottom", show=False),
+        Binding("g", "table_top", "Top", show=False),
     ]
 
     def __init__(self, csv_path: str, theme: str | None):
@@ -101,6 +105,14 @@ class CSVEditorApp(App):
     def action_table_right(self):
         if isinstance(self.focused, DataTable):
             self.focused.action_cursor_right()
+
+    def action_table_bottom(self):
+        if isinstance(self.focused, DataTable):
+            self.focused.action_scroll_bottom()
+
+    def action_table_top(self):
+        if isinstance(self.focused, DataTable):
+            self.focused.action_scroll_top()
 
     # ---file/ table actions--- #
     def load_data(self) -> None:

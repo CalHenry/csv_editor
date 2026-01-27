@@ -8,7 +8,7 @@ Navigate using the arrow keys or the mouse. Edit, add or remove row and columns 
 
 ### Features
 - Edit data: add or remove rows and columns, edit or copy cell content
-- Navigation: arrow keys, basic vim keys (hjkl), jumpt to a cell/ row/ col using coordiantes (ex: 12:3 - go to row 12, column 3)
+- Navigation: arrow keys, basic vim keys (hjkl gG), jumpt to a cell/ row/ col using coordiantes (ex: 12:3 - go to row 12, column 3)
 - Launch the app using the command line
 
 
@@ -57,7 +57,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```sh
 echo '' >> ~/.zshrc
 echo 'alias csv="csve-ve"' >> ~/.zshrc 
-# you can set you favorite theme in the alias to always launch the app with this theme: 
+# you can set your favorite theme in the alias to always launch the app with this theme: 
 # alias csv="csve-ve --theme 'textual-light'
 source ~/.zshrc
 ```
@@ -96,7 +96,7 @@ Folder structure
 - [X] copy cell content directly from the table (content of highlighted cell)
 - [ ] resize columns
 - [X] cli
-- [X] vim navigation keys (hjkl)
+- [X] vim navigation keys (hjk), g to go top, G to got bottom
 - [ ] filtering rows/ search values ? 
 
 #### Theme
